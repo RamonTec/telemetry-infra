@@ -1,0 +1,67 @@
+# Telemetry platform stack: services shared by every environment.
+# Environment-specific settings live in compose.<env>.yml and env/<env>.env.
+# Use ./stack.sh instead of calling docker compose directly.
+name: telemetry
+
+services:
+  nats:
+    image: nats:2.11-alpine
+    command: ['-js', '-sd', '/data', '-m', '8222']
+    volumes:
+      - nats-data:/data
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:8222/healthz']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER:?}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?}
+      KC_HEALTH_ENABLED: 'true'
+      # Tokens are issued for this URL, the one services use inside the network.
+      KC_HOSTNAME: http://keycloak:8080
+
+  traccar:
+    image: traccar/traccar:6.15.3
+    environment:
+      CONFIG_USE_ENVIRONMENT_VARIABLES: 'true'
+      FORWARD_URL: http://traccar-adapter:3000/webhooks/traccar/positions
+      FORWARD_HEADER: 'Authorization: Bearer ${WEBHOOK_TOKEN:?}'
+      EVENT_FORWARD_URL: http://traccar-adapter:3000/webhooks/traccar/events
+      EVENT_FORWARD_HEADER: 'Authorization: Bearer ${WEBHOOK_TOKEN:?}'
+    volumes:
+      - traccar-data:/opt/traccar/data
+
+  traccar-adapter:
+    image: ${TRACCAR_ADAPTER_IMAGE:?}
+    environment:
+      PORT: '3000'
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      KEYCLOAK_ISSUER_URL: http://keycloak:8080/realms/telemetry
+      KEYCLOAK_AUDIENCE: traccar-adapter
+      TRACCAR_BASE_URL: http://traccar:8082
+      TRACCAR_API_TOKEN: ${TRACCAR_API_TOKEN:-} # ./stack.sh bootstrap
+      WEBHOOK_TOKEN: ${WEBHOOK_TOKEN:?}
+      NATS_SERVERS: nats://nats:4222
+    volumes:
+      # Outbox buffer (traccar-adapter ADR-0007): one persistent volume per replica.
+      - traccar-adapter-data:/app/data
+    depends_on:
+      nats:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      traccar:
+        condition: service_started
+
+volumes:
+  nats-data:
+  traccar-data:
+  traccar-adapter-data:
+
+networks:
+  default:
+    name: telemetry

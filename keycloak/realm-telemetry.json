@@ -1,0 +1,69 @@
+{
+  "realm": "telemetry",
+  "enabled": true,
+  "displayName": "Telemetry Platform",
+  "sslRequired": "none",
+  "roles": {
+    "client": {
+      "traccar-adapter": [
+        {
+          "name": "groups:write",
+          "description": "Permite crear groups en traccar-adapter"
+        },
+        {
+          "name": "devices:write",
+          "description": "Permite registrar, deshabilitar y habilitar devices en traccar-adapter"
+        }
+      ]
+    }
+  },
+  "clients": [
+    {
+      "clientId": "traccar-adapter",
+      "name": "Traccar Adapter Service",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "bearerOnly": true,
+      "publicClient": false
+    },
+    {
+      "clientId": "core-service",
+      "name": "Core Service (API Core)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "bearerOnly": false,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "core-service-secret",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "protocolMappers": [
+        {
+          "name": "traccar-adapter-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "traccar-adapter",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-core-service",
+      "enabled": true,
+      "serviceAccountClientId": "core-service",
+      "clientRoles": {
+        "traccar-adapter": [
+          "groups:write",
+          "devices:write"
+        ]
+      }
+    }
+  ]
+}

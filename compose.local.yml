@@ -1,0 +1,28 @@
+# Local development: dev modes, host ports and images built from the sibling repos.
+services:
+  nats:
+    ports:
+      - '${NATS_PORT:-4222}:4222'
+      - '${NATS_MONITOR_PORT:-8222}:8222'
+
+  keycloak:
+    command: ['start-dev', '--import-realm']
+    environment:
+      KC_HOSTNAME_ADMIN: http://localhost:${KEYCLOAK_PORT:-8080}
+    ports:
+      - '${KEYCLOAK_PORT:-8080}:8080'
+    volumes:
+      - ./keycloak/realm-telemetry.json:/opt/keycloak/data/import/realm-telemetry.json:ro
+
+  traccar:
+    ports:
+      - '${TRACCAR_WEB_PORT:-18082}:8082'
+      - '${TRACCAR_OSMAND_PORT:-15055}:5055'
+    volumes:
+      - ./traccar/traccar.local.xml:/opt/traccar/conf/traccar.xml:ro
+
+  traccar-adapter:
+    build:
+      context: ${TRACCAR_ADAPTER_SRC:-../traccar-adapter}
+    ports:
+      - '${ADAPTER_PORT:-3000}:3000'
