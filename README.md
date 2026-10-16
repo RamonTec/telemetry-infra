@@ -26,6 +26,7 @@ docker build -t traccar-adapter:local ../traccar-adapter   # o: ./stack.sh up --
 | Keycloak (admin `admin`/`admin`) | http://localhost:8080 | http://keycloak:8080 |
 | Traccar web (`admin@telemetry.local`/`admin`) | http://localhost:18082 | http://traccar:8082 |
 | Traccar OsmAnd | `localhost:15055` | `traccar:5055` |
+| MySQL (`core_service`/`core-dev`, `telemetry_service`/`telemetry-dev`) | `localhost:13306` | `mysql:3306` (bases `core`, `telemetry`) |
 | NATS / monitor | `localhost:4222` / http://localhost:8222 | `nats://nats:4222` |
 
 Los puertos de host se cambian en `env/local.env` o con variables de shell (`TRACCAR_WEB_PORT=28082 ./stack.sh up`):
@@ -71,6 +72,7 @@ remotos esto se sustituye por `KC_HOSTNAME` con el dominio público.
 | `compose.local.yml` | Local: modos dev, puertos de host, imágenes construidas desde los repos hermanos |
 | `env/local.env` | Valores de desarrollo (sin secretos reales) |
 | `keycloak/realm-telemetry.json` | Realm `telemetry`: clients, roles, audiencias |
+| `mysql/init/01-databases.sh` | Crea una base y un usuario por servicio (`core`, `core_shadow`, `telemetry`) en un volumen vacío |
 | `traccar/traccar.local.xml` | Config de Traccar local; las URLs y headers del forward vienen de `compose.yml` |
 | `scripts/smoke.mjs` | Prueba de punta a punta (`./stack.sh smoke`) |
 | `scripts/traccar-token.mjs` | Crea el primer usuario de Traccar y emite su token de API (`./stack.sh bootstrap`) |

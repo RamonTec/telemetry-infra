@@ -144,7 +144,7 @@ Orden sugerido:
   o que telemetry-service sea su dueño (alcance v1 resuelto en §12). Se decide en el design de telemetry-service.
 - **Resolución `groupId → tenant`** en telemetry-service: llamada a core-service por evento o caché local sincronizada
   por eventos (Q2 del planning de traccar-adapter).
-- **Imágenes arm64** para la VM de Oracle (build en la VM o multi-arch en CI) y **MySQL** en el stack.
+- **Imágenes arm64** para la VM de Oracle (build en la VM o multi-arch en CI). MySQL ya está en el stack (bases `core` y `telemetry`, un usuario por servicio).
 
 ## 12. Decisiones del descubrimiento de core-service
 | Fecha | Tema | Decisión |

@@ -1,5 +1,9 @@
 # Local development: dev modes, host ports and images built from the sibling repos.
 services:
+  mysql:
+    ports:
+      - '${MYSQL_PORT:-13306}:3306'
+
   nats:
     ports:
       - '${NATS_PORT:-4222}:4222'
