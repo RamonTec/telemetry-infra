@@ -75,8 +75,22 @@ remotos esto se sustituye por `KC_HOSTNAME` con el dominio público.
 | `scripts/smoke.mjs` | Prueba de punta a punta (`./stack.sh smoke`) |
 | `scripts/traccar-token.mjs` | Crea el primer usuario de Traccar y emite su token de API (`./stack.sh bootstrap`) |
 
+## Keycloak: usuarios de desarrollo (PADR-004)
+
+Login con el client público `web-app` (en local también acepta *password grant* para pruebas). Contraseña de todos:
+`dev-password` (**solo local**). Tenant demo: `01920000-0000-7000-8000-000000000001`.
+
+| Usuario | Rol | `tenant_id` |
+|---------|-----|-------------|
+| `operator` | `platform-operator` (realm) | — |
+| `demo-admin` | `tenant-admin` | tenant demo |
+| `demo-dispatcher` | `tenant-operator` | tenant demo |
+| `demo-viewer` | `tenant-viewer` | tenant demo |
+
 ## Keycloak: clients del realm
 
 - **`traccar-adapter`** (receptor, bearer-only): roles de client `groups:write`, `devices:write`.
-- **`core-service`** (llamante): secret `core-service-secret` (solo local), service account con ambos roles y
-  audience mapper → `aud: traccar-adapter`. El `azp` del token es el `actor` en los logs de auditoría del adapter.
+- **`core-service`**: llamante de traccar-adapter (secret `core-service-secret` solo local, service account con ambos roles,
+  audience mapper → `aud: traccar-adapter`) y, a la vez, dueño de los roles de tenant `tenant-admin`, `tenant-operator`,
+  `tenant-viewer` y `driver` (PADR-004).
+- **`web-app`** (frontend, público, PKCE): audience mapper → `aud: core-service` y mapper del atributo `tenant_id`.
