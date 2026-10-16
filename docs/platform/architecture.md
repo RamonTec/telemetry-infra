@@ -138,10 +138,10 @@ Orden sugerido:
 
 ## 11. Pendiente de definir
 - **Facturación**: duración del periodo de gracia, precios y datos fiscales/facturas (modelo resuelto en §12).
-- **Requisitos de cada vertical**: viajes, órdenes y rastreo genérico.
 - **Ciclo de vida del GPS**: baja y reemplazo (asignación y alta resueltas en §12; un device nunca cambia de group;
   un IMEI reutilizado es un device nuevo).
-- **Alertas y geocercas**: quién las define (core-service) y quién las evalúa (telemetry-service).
+- **Dueño de geocercas y reglas de alerta**: definirlas en core-service y sincronizarlas a telemetry-service por eventos,
+  o que telemetry-service sea su dueño (alcance v1 resuelto en §12). Se decide en el design de telemetry-service.
 - **Resolución `groupId → tenant`** en telemetry-service: llamada a core-service por evento o caché local sincronizada
   por eventos (Q2 del planning de traccar-adapter).
 - **Imágenes arm64** para la VM de Oracle (build en la VM o multi-arch en CI) y **MySQL** en el stack.
@@ -161,4 +161,8 @@ Orden sugerido:
 | 2026-10-15 | Pagos | **Manuales al inicio**: la plataforma lleva planes, suscripciones y estado de pago; el operador registra los pagos recibidos. Una pasarela (Stripe / Mercado Pago) se integra después **detrás de un port**, sin cambiar el dominio. |
 | 2026-10-15 | Impago | **Periodo de gracia → solo lectura** (ve su historial, no crea ni modifica; los GPS siguen reportando para no perder datos). La suspensión total la decide el operador manualmente. |
 | 2026-10-15 | Ciclo | **Mensual**. |
+| 2026-10-15 | Viajes (v1) | **Viaje simple con estados**: vehículo + conductor, origen, destino y horario programado; `programado → en curso → completado / cancelado`; recorrido real (de telemetry-service) y retraso frente a lo planeado. Paradas, pasajeros y rutas recurrentes, después. |
+| 2026-10-15 | Órdenes (v1) | **Entrega simple con estados**: dirección, destinatario y ventana horaria; asignada a vehículo + conductor; `pendiente → asignada → en ruta → entregada / fallida`; confirmación **manual o automática por geocerca del destino**. Prueba de entrega y rutas multi-parada, después. |
+| 2026-10-15 | Alertas (v1) | **Entrada/salida de geocerca**, **exceso de velocidad**, **alarmas del GPS** (`device.event`: SOS, batería, corriente…) y **sin reportar / detenido** (N minutos, o detenido con viaje u orden en curso). Las evalúa telemetry-service. |
+| 2026-10-15 | Notificaciones (v1) | **En la app en vivo** (realtime-gateway) con historial consultable, y **email** a administradores y operadores suscritos. WhatsApp/SMS y webhooks al cliente, después. |
 
