@@ -139,8 +139,8 @@ Orden sugerido:
 ## 11. Pendiente de definir
 - **Facturación**: planes, unidad de cobro y proveedor de pagos.
 - **Requisitos de cada vertical**: viajes, órdenes y rastreo genérico.
-- **Ciclo de vida del GPS**: alta, asociación a vehículo, cambio de vehículo (un device nunca cambia de group; un IMEI
-  reutilizado es un device nuevo).
+- **Ciclo de vida del GPS**: baja y reemplazo (asignación y alta resueltas en §12; un device nunca cambia de group;
+  un IMEI reutilizado es un device nuevo).
 - **Alertas y geocercas**: quién las define (core-service) y quién las evalúa (telemetry-service).
 - **Resolución `groupId → tenant`** en telemetry-service: llamada a core-service por evento o caché local sincronizada
   por eventos (Q2 del planning de traccar-adapter).
@@ -153,3 +153,8 @@ Orden sugerido:
 | 2026-10-15 | Multitenancy en MySQL | **Esquema compartido con `tenant_id`** en cada tabla de negocio; aislamiento obligatorio en la capa de aplicación (todo repositorio filtra por tenant). Esquema o BD por tenant quedan para un futuro nivel de alto aislamiento. |
 | 2026-10-15 | Roles dentro de un tenant | **Administrador del tenant** (usuarios, vehículos, GPS, suscripción), **operador/despachador** (mapa, historial, viajes y órdenes), **solo lectura** (consulta) y **conductor** (sus viajes/órdenes asignados). |
 | 2026-10-15 | Alta de tenants | **Manual por el operador de la plataforma** (superadmin), que crea el tenant y su primer administrador. Autoservicio, más adelante. |
+| 2026-10-15 | Vehículo ↔ GPS | **1 a 1, reasignable dentro del tenant**: un vehículo tiene como máximo un GPS activo; el GPS puede pasar a otro vehículo del mismo tenant (mismo device y group en Traccar). core-service guarda el **historial de asignaciones con vigencia** para atribuir cada posición al vehículo correcto. |
+| 2026-10-15 | Alta de GPS | La hace el **administrador del tenant** con el IMEI (flujo `POST /devices` de traccar-adapter). |
+| 2026-10-15 | Conductor | **Entidad propia de la flota** (nombre, licencia, teléfono) asignable a vehículos, viajes y órdenes; **usuario opcional** con rol conductor si necesita entrar a la app. |
+| 2026-10-15 | Verticales | **Por plan**: rastreo genérico siempre incluido; viajes y órdenes se activan según el plan; un tenant puede tener ambas. |
+
