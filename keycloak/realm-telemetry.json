@@ -65,5 +65,8 @@
         ]
       }
     }
-  ]
+  ],
+  "attributes": {
+    "frontendUrl": "http://keycloak:8080"
+  }
 }

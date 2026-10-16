@@ -46,9 +46,10 @@ Un entorno = `compose.<env>.yml` (ajustes sobre `compose.yml`) + `env/<env>.env`
 3. Posición OsmAnd: `GET http://localhost:15055/?id=<IMEI>&lat=19.43&lon=-99.13&timestamp=<epoch>`.
 4. Traccar la reenvía al adapter → `telemetry.events.position` en el stream `TELEMETRY_EVENTS`.
 
-Los tokens se emiten siempre con `iss = http://keycloak:8080/realms/telemetry` (`KC_HOSTNAME`), el issuer que validan
-los servicios dentro de la red, aunque el token se pida desde `localhost`. La consola de admin sigue en `localhost`
-(`KC_HOSTNAME_ADMIN`).
+Los tokens del realm `telemetry` se emiten siempre con `iss = http://keycloak:8080/realms/telemetry` (atributo
+`frontendUrl` del realm), el issuer que validan los servicios dentro de la red, aunque el token se pida desde
+`localhost`. El realm `master` (consola de admin) usa hostname dinámico y sigue la URL del navegador. En entornos
+remotos esto se sustituye por `KC_HOSTNAME` con el dominio público.
 
 ## Contenido
 

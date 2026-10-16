@@ -6,9 +6,9 @@ services:
       - '${NATS_MONITOR_PORT:-8222}:8222'
 
   keycloak:
+    # Dynamic hostname: the admin console (realm master) follows the browser's URL.
+    # Realm telemetry pins its issuer with frontendUrl=http://keycloak:8080 (realm JSON).
     command: ['start-dev', '--import-realm']
-    environment:
-      KC_HOSTNAME_ADMIN: http://localhost:${KEYCLOAK_PORT:-8080}
     ports:
       - '${KEYCLOAK_PORT:-8080}:8080'
     volumes:

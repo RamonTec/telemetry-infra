@@ -21,8 +21,6 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER:?}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?}
       KC_HEALTH_ENABLED: 'true'
-      # Tokens are issued for this URL, the one services use inside the network.
-      KC_HOSTNAME: http://keycloak:8080
 
   traccar:
     image: traccar/traccar:6.15.3
