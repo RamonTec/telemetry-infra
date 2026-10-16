@@ -137,7 +137,7 @@ Orden sugerido:
 | 7 | — | Decisiones de plataforma en [`decisions/`](decisions/) (PADR-001…003, antes ADR-0002…0004 de traccar-adapter). |
 
 ## 11. Pendiente de definir
-- **Facturación**: planes, unidad de cobro y proveedor de pagos.
+- **Facturación**: duración del periodo de gracia, precios y datos fiscales/facturas (modelo resuelto en §12).
 - **Requisitos de cada vertical**: viajes, órdenes y rastreo genérico.
 - **Ciclo de vida del GPS**: baja y reemplazo (asignación y alta resueltas en §12; un device nunca cambia de group;
   un IMEI reutilizado es un device nuevo).
@@ -157,4 +157,8 @@ Orden sugerido:
 | 2026-10-15 | Alta de GPS | La hace el **administrador del tenant** con el IMEI (flujo `POST /devices` de traccar-adapter). |
 | 2026-10-15 | Conductor | **Entidad propia de la flota** (nombre, licencia, teléfono) asignable a vehículos, viajes y órdenes; **usuario opcional** con rol conductor si necesita entrar a la app. |
 | 2026-10-15 | Verticales | **Por plan**: rastreo genérico siempre incluido; viajes y órdenes se activan según el plan; un tenant puede tener ambas. |
+| 2026-10-15 | Unidad de cobro | **Por vehículo activo al mes**; cada plan tiene un precio por vehículo con GPS activo y habilita verticales. |
+| 2026-10-15 | Pagos | **Manuales al inicio**: la plataforma lleva planes, suscripciones y estado de pago; el operador registra los pagos recibidos. Una pasarela (Stripe / Mercado Pago) se integra después **detrás de un port**, sin cambiar el dominio. |
+| 2026-10-15 | Impago | **Periodo de gracia → solo lectura** (ve su historial, no crea ni modifica; los GPS siguen reportando para no perder datos). La suspensión total la decide el operador manualmente. |
+| 2026-10-15 | Ciclo | **Mensual**. |
 
