@@ -4,6 +4,8 @@ Cómo se ejecuta la plataforma de telemetría: compose de todos los servicios, c
 Keycloak, Traccar, NATS) y el script `stack.sh`. **No contiene código de servicios**: cada microservicio construye
 su imagen en su propio repo; aquí solo se juntan y se arrancan.
 
+Arquitectura y decisiones de plataforma: [docs/platform/](docs/platform/README.md).
+
 ## Inicio rápido (local)
 
 Requisitos: Docker con Compose v2 y los repos hermanos clonados junto a este (`../traccar-adapter`, …).
