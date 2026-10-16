@@ -56,10 +56,10 @@ flowchart TB
 | Servicio | Repo / carpeta | Responsabilidad |
 |----------|----------------|-----------------|
 | **api-gateway** | `api-gateway` | Punto de entrada REST. Valida el JWT de Keycloak de cada petición, **resuelve el tenant** desde los claims y enruta a core-service o telemetry-service. Deliberadamente delgado: sin lógica de negocio. |
-| **core-service** | `api-core` | Dueño del contexto de tenants y facturación: tenants, vehículos (vista de negocio: propiedad, plan, facturación), usuarios y la lógica de las verticales (viajes, órdenes). Separado de la telemetría a propósito: una caída de Traccar o un bug de procesamiento de ubicaciones no puede tumbar la facturación ni la gestión de tenants. Guarda el mapeo `tenant_id ↔ traccar_group_id` y `vehicle_id ↔ traccar_device_id`. |
+| **core-service** | `core-service` | Dueño del contexto de tenants y facturación: tenants, vehículos (vista de negocio: propiedad, plan, facturación), usuarios y la lógica de las verticales (viajes, órdenes). Separado de la telemetría a propósito: una caída de Traccar o un bug de procesamiento de ubicaciones no puede tumbar la facturación ni la gestión de tenants. Guarda el mapeo `tenant_id ↔ traccar_group_id` y `vehicle_id ↔ traccar_device_id`. |
 | **traccar-adapter** | `traccar-adapter` | Único servicio que habla con Traccar. Ejecuta los comandos de core-service (groups, devices), recibe por webhook lo que Traccar reenvía, lo normaliza al formato de la plataforma y lo publica en NATS. Sin BD ni lógica de negocio (salvo el outbox de entrega, §10). |
 | **telemetry-service** | `telemetry-service` | Se suscribe a NATS, resuelve el tenant por `groupId`, filtra ruido, escribe el historial de ubicaciones en su tabla MySQL particionada y **evalúa reglas de geocercas y alertas**. Responde consultas de historial. |
-| **realtime-gateway** | `ws-gateway` | Mantiene los WebSockets del frontend y se suscribe a NATS para **empujar ubicaciones y eventos en vivo** a los clientes conectados del tenant correcto. Separado de api-gateway porque los WebSockets son conexiones largas y con estado: reiniciarlo no debe afectar al tráfico REST. |
+| **realtime-gateway** | `realtime-gateway` | Mantiene los WebSockets del frontend y se suscribe a NATS para **empujar ubicaciones y eventos en vivo** a los clientes conectados del tenant correcto. Separado de api-gateway porque los WebSockets son conexiones largas y con estado: reiniciarlo no debe afectar al tráfico REST. |
 
 ## 4. Patrones de comunicación
 | Patrón | Entre | Por qué |
@@ -133,13 +133,10 @@ Orden sugerido:
 | 3 | — | **Dead-letter** (`telemetry.deadletter.traccar`): nada se descarta en silencio; telemetry-service puede guardarlo para análisis. |
 | 4 | — | **Autenticación entre servicios** con *client credentials* (PADR-002), además de la de usuarios. |
 | 5 | Limpiar la BD de Traccar cada ~15 días | Se mantiene. Si se implementa la reconciliación de traccar-adapter (spec 011, diferido), esa limpieza fija su ventana máxima de recuperación. |
-| 6 | Nombres core-service / realtime-gateway | Las carpetas son `api-core` / `ws-gateway`. **Pendiente** unificar nombres (§11). |
+| 6 | Nombres core-service / realtime-gateway | Confirmados como canónicos (§12); las carpetas `api-core` y `ws-gateway` se renombraron. |
 | 7 | — | Decisiones de plataforma en [`decisions/`](decisions/) (PADR-001…003, antes ADR-0002…0004 de traccar-adapter). |
 
 ## 11. Pendiente de definir
-- **Nombres canónicos** de core-service / api-core y realtime-gateway / ws-gateway (repos, compose, Keycloak, docs).
-- **Patrón multitenant en MySQL** (esquema compartido con `tenant_id`, esquema por tenant o BD por tenant).
-- **Usuarios y roles** dentro de un tenant y el **operador de la plataforma** (alta de tenants).
 - **Facturación**: planes, unidad de cobro y proveedor de pagos.
 - **Requisitos de cada vertical**: viajes, órdenes y rastreo genérico.
 - **Ciclo de vida del GPS**: alta, asociación a vehículo, cambio de vehículo (un device nunca cambia de group; un IMEI
@@ -148,3 +145,11 @@ Orden sugerido:
 - **Resolución `groupId → tenant`** en telemetry-service: llamada a core-service por evento o caché local sincronizada
   por eventos (Q2 del planning de traccar-adapter).
 - **Imágenes arm64** para la VM de Oracle (build en la VM o multi-arch en CI) y **MySQL** en el stack.
+
+## 12. Decisiones del descubrimiento de core-service
+| Fecha | Tema | Decisión |
+|-------|------|----------|
+| 2026-10-15 | Nombres | **core-service** y **realtime-gateway** en repos, compose, Keycloak y docs. |
+| 2026-10-15 | Multitenancy en MySQL | **Esquema compartido con `tenant_id`** en cada tabla de negocio; aislamiento obligatorio en la capa de aplicación (todo repositorio filtra por tenant). Esquema o BD por tenant quedan para un futuro nivel de alto aislamiento. |
+| 2026-10-15 | Roles dentro de un tenant | **Administrador del tenant** (usuarios, vehículos, GPS, suscripción), **operador/despachador** (mapa, historial, viajes y órdenes), **solo lectura** (consulta) y **conductor** (sus viajes/órdenes asignados). |
+| 2026-10-15 | Alta de tenants | **Manual por el operador de la plataforma** (superadmin), que crea el tenant y su primer administrador. Autoservicio, más adelante. |
