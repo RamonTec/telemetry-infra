@@ -10,16 +10,18 @@
 #   logs       follow logs (all or the given services)
 #   ps         list containers
 #   bootstrap  create the Traccar admin user and its API token
+#   smoke      end-to-end check of the running stack (token → group/device → position → NATS)
 #
 # Environments: each one is compose.<env>.yml + env/<env>.env. Only "local" exists for now.
 set -euo pipefail
 
 cd "$(dirname "$0")"
 
-usage() { sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+usage() { awk 'NR > 1 && /^#/ { sub(/^# ?/, ""); print; next } NR > 1 { exit }' "$0"; exit "${1:-0}"; }
 
 [[ $# -ge 1 ]] || usage 1
 COMMAND=$1; shift
+[[ $COMMAND == -h || $COMMAND == --help || $COMMAND == help ]] && usage
 ENV_NAME=local
 BUILD=()
 SERVICES=()
@@ -66,6 +68,14 @@ bootstrap() {
   echo "Token saved in $SECRETS_FILE"
 }
 
+smoke() {
+  # Throwaway container from the adapter image: it has Node and the NATS client.
+  compose run --rm --no-deps -T \
+    -e SMOKE_CLIENT_ID -e SMOKE_CLIENT_SECRET \
+    -v "$PWD/scripts/smoke.mjs:/app/smoke.mjs:ro" --entrypoint node \
+    traccar-adapter /app/smoke.mjs
+}
+
 # Export env-file values not already set in the shell (shell wins, like in Compose),
 # so bootstrap's `-e NAME` pass-through sees them.
 while IFS='=' read -r key value; do
@@ -88,5 +98,6 @@ case $COMMAND in
   logs) compose logs -f "${SERVICES[@]}" ;;
   ps) compose ps ;;
   bootstrap) bootstrap ;;
+  smoke) smoke ;;
   *) echo "Unknown command: $COMMAND" >&2; usage 1 ;;
 esac

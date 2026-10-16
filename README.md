@@ -13,6 +13,7 @@ docker build -t traccar-adapter:local ../traccar-adapter   # o: ./stack.sh up --
 ./stack.sh up            # arranca todo; la primera vez crea el usuario y el token de Traccar
 ./stack.sh ps
 ./stack.sh logs traccar-adapter
+./stack.sh smoke         # prueba de punta a punta del stack en marcha
 ./stack.sh down          # para, conserva los datos
 ./stack.sh reset         # para y BORRA los volúmenes (pide confirmación)
 ```
@@ -38,13 +39,21 @@ Un entorno = `compose.<env>.yml` (ajustes sobre `compose.yml`) + `env/<env>.env`
 | `local` | listo |
 | `sbx`, `prod` | sin definir: se crean sus dos archivos cuando exista el primer despliegue (ver [docs/environments.md](docs/environments.md)) |
 
-## Flujo de punta a punta (local)
+## Prueba de punta a punta
 
-1. Token S2S: `POST http://localhost:8080/realms/telemetry/protocol/openid-connect/token` con
+`./stack.sh smoke` comprueba el stack en marcha y termina con `SMOKE PASSED` (exit 0) o `SMOKE FAILED` (exit 1):
+
+1. traccar-adapter `ready` (Traccar, NATS y outbox `ok`).
+2. Keycloak emite un token *client credentials* (`SMOKE_CLIENT_ID`) con el `iss`, `aud` y roles esperados.
+3. traccar-adapter rechaza una petición sin token (401) y acepta `POST /groups` y `POST /devices` con el token real.
+4. Traccar acepta una posición OsmAnd del device y el evento `position.reported` llega a `TELEMETRY_EVENTS`.
+
+Es idempotente (mismo group y device en cada ejecución). A mano, desde el host:
+
+1. Token: `POST http://localhost:8080/realms/telemetry/protocol/openid-connect/token` con
    `grant_type=client_credentials`, `client_id=core-service`, `client_secret=core-service-secret`.
 2. `POST http://localhost:3000/groups` y `POST /devices` con `Authorization: Bearer <token>`.
 3. Posición OsmAnd: `GET http://localhost:15055/?id=<IMEI>&lat=19.43&lon=-99.13&timestamp=<epoch>`.
-4. Traccar la reenvía al adapter → `telemetry.events.position` en el stream `TELEMETRY_EVENTS`.
 
 Los tokens del realm `telemetry` se emiten siempre con `iss = http://keycloak:8080/realms/telemetry` (atributo
 `frontendUrl` del realm), el issuer que validan los servicios dentro de la red, aunque el token se pida desde
@@ -55,12 +64,13 @@ remotos esto se sustituye por `KC_HOSTNAME` con el dominio público.
 
 | Ruta | Qué es |
 |------|--------|
-| `stack.sh` | Punto de entrada: `up`, `down`, `reset`, `logs`, `ps`, `bootstrap` |
+| `stack.sh` | Punto de entrada: `up`, `down`, `reset`, `logs`, `ps`, `bootstrap`, `smoke` |
 | `compose.yml` | Servicios y red comunes a todos los entornos |
 | `compose.local.yml` | Local: modos dev, puertos de host, imágenes construidas desde los repos hermanos |
 | `env/local.env` | Valores de desarrollo (sin secretos reales) |
 | `keycloak/realm-telemetry.json` | Realm `telemetry`: clients, roles, audiencias |
 | `traccar/traccar.local.xml` | Config de Traccar local; las URLs y headers del forward vienen de `compose.yml` |
+| `scripts/smoke.mjs` | Prueba de punta a punta (`./stack.sh smoke`) |
 | `scripts/traccar-token.mjs` | Crea el primer usuario de Traccar y emite su token de API (`./stack.sh bootstrap`) |
 
 ## Keycloak: clients del realm
