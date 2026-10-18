@@ -5,6 +5,7 @@ Lo que aplica a **todos** los servicios. Cada servicio documenta lo suyo en su r
 | Documento | Qué es |
 |-----------|--------|
 | [architecture.md](architecture.md) | Producto, arquitectura, comunicación, datos, auth, despliegue y pendientes |
+| [roadmap.md](roadmap.md) | Orden de construcción de la plataforma, dependencias entre servicios y enlaces a cada planning |
 | [decisions/](decisions/) | Decisiones de plataforma (PADR) |
 | [../environments.md](../environments.md) | Modelo de entornos (local, sbx, prod) |
 
