@@ -30,3 +30,9 @@ services:
       context: ${TRACCAR_ADAPTER_SRC:-../traccar-adapter}
     ports:
       - '${ADAPTER_PORT:-3000}:3000'
+
+  core-service:
+    build:
+      context: ${CORE_SERVICE_SRC:-../core-service}
+    ports:
+      - '${CORE_PORT:-3001}:3000'
