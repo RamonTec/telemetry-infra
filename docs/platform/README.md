@@ -16,6 +16,7 @@ Lo que aplica a **todos** los servicios. Cada servicio documenta lo suyo en su r
 | [PADR-002](decisions/0002-service-to-service-auth.md) | Autenticación entre servicios (Keycloak, client credentials) | traccar-adapter ADR-0003 |
 | [PADR-003](decisions/0003-telemetry-event-contract.md) | Contrato de eventos de telemetría en JetStream | traccar-adapter ADR-0004 |
 | [PADR-004](decisions/0004-user-identity-and-tenant-claims.md) | Identidad de usuarios: `tenant_id` y roles en el token | — |
+| [PADR-005](decisions/0005-tenant-signup-and-user-provisioning.md) | Alta de tenants y aprovisionamiento de usuarios en Keycloak | — |
 
 Una decisión nueva que afecte a más de un servicio se escribe aquí como `PADR-NNN`; las de un solo servicio, como
 ADR en su repo.
