@@ -70,11 +70,26 @@ services:
       traccar:
         condition: service_started
 
+  core-service:
+    image: ${CORE_SERVICE_IMAGE:?}
+    environment:
+      PORT: '3000'
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      KEYCLOAK_ISSUER_URL: http://keycloak:8080/realms/telemetry
+      KEYCLOAK_AUDIENCE: core-service
+      DATABASE_URL: mysql://core_service:${CORE_DB_PASSWORD:?}@mysql:3306/core
+    depends_on:
+      mysql:
+        condition: service_healthy   # el entrypoint corre `prisma migrate deploy` al arrancar
+      keycloak:
+        condition: service_started
+
 volumes:
   mysql-data:
   nats-data:
   traccar-data:
   traccar-adapter-data:
+  core-service:
 
 networks:
   default:
